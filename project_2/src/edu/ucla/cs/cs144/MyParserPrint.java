@@ -179,7 +179,6 @@ class MyParserPrint {
         /* At this point 'doc' contains a DOM representation of an 'Items' XML
          * file. Use doc.getDocumentElement() to get the root Element. */
         System.out.println("Successfully parsed - " + xmlFile);
-        
         /* Fill in code here (you will probably need to write auxiliary
             methods). */
         
@@ -203,9 +202,12 @@ class MyParserPrint {
         
         // dump out attributes if any
         org.w3c.dom.NamedNodeMap nattrib = n.getAttributes();
-        if(nattrib != null && nattrib.getLength() > 0)
+        if(nattrib != null && nattrib.getLength() > 0){
+            System.out.println("this is an attribute " + nattrib.getLength());
             for(int i=0; i<nattrib.getLength(); i++)
                 recursiveDescent(nattrib.item(i),  level+1);
+        }
+            
         
         // now walk through its children list
         org.w3c.dom.NodeList nlist = n.getChildNodes();
