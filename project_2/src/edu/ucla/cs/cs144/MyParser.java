@@ -61,6 +61,12 @@ class MyParser {
 	"DocFragment",
 	"Notation",
     };
+
+    private static FileWriter item_dat;
+    private static FileWriter category_dat;
+    private static FileWriter bidder_dat;
+    private static FileWriter seller_dat;
+    private static FileWriter bid_dat;
     
     static class MyErrorHandler implements ErrorHandler {
         
@@ -183,11 +189,13 @@ class MyParser {
         /* Fill in code here (you will probably need to write auxiliary
             methods). */
         Element[] items = getElementsByTagNameNR(doc.getDocumentElement(), "Item"); 
-        for(int i = 0; i < items.length; i++){
+        for(int i = 0; i < items.length; i++) {
+
+            String[] item_dat_line;
+
             String id = items[i].getAttribute("ItemID"); 
             String name = getElementTextByTagNameNR(items[i], "Name");
             String description = getElementTextByTagNameNR(items[i], "Description");
-
             if(description.length() > 4000)
                 description = description.substring(0, 4000); 
             System.out.println("item number: " + i);
@@ -195,7 +203,6 @@ class MyParser {
             String buy_price = strip(getElementTextByTagNameNR(items[i], "Buy_Price"));
             String first_bid = strip(getElementTextByTagNameNR(items[i], "First_Bid"));
             String number_of_bids = getElementTextByTagNameNR(items[i], "Number_of_Bids");
-            
             Element location = getElementByTagNameNR(items[i], "Location"); 
             String latitude = location.getAttribute("Latitude"); 
             String longitude = location.getAttribute("Longitude");
@@ -204,10 +211,15 @@ class MyParser {
             String started = getElementTextByTagNameNR(items[i], "Started");
             String ends = getElementTextByTagNameNR(items[i], "Ends");
             String format_started = format_timestamp(started); 
-            String format_ends = format_timestamp(ends);  
-            //System.out.println(started);
-            //System.out.println(ends);
+            String format_ends = format_timestamp(ends);
+
             Element seller = getElementByTagNameNR(items[i], "Seller"); 
+            String seller_id = seller.getAttribute("UserID");
+
+            print_load_line(item_dat, id, name, description, seller_id, currently, buy_price,
+                first_bid, number_of_bids, location_text, latitude, longitude, country,
+                    format_started, format_ends);
+
             create_seller(seller); 
             create_categories(items[i]);
             create_bid(items[i]); 
@@ -239,7 +251,10 @@ class MyParser {
             System.out.println(format_time); 
             System.out.println(bidder_Country);
             System.out.println(bidder_Location); 
-            System.out.println(bidder_Rating);  
+            System.out.println(bidder_Rating);
+
+            print_load_line(bidder_dat, bidder_id, bidder_Rating, bidder_Location, bidder_Country);
+            print_load_line(bid_dat, item_id, bidder_id, format_time, amount);  
         } 
     }
 
@@ -247,9 +262,8 @@ class MyParser {
         String id = item.getAttribute("ItemID"); 
         Element[] categories = getElementsByTagNameNR(item, "Category");
         for(int i = 0; i < categories.length; i++) {
-            String cat = getElementText(categories[i]); 
-            //System.out.println(cat); 
-            //addd id, cat to table 
+            String cat = getElementText(categories[i]);
+            print_load_line(category_dat, id, cat); 
         }  
     }
     static String format_timestamp(String date_time)  {
@@ -275,9 +289,25 @@ class MyParser {
     static void create_seller(Element seller){
         String seller_id = seller.getAttribute("UserID"); 
         String rating = seller.getAttribute("Rating");
-        // add to table/file 
-        //System.out.println(seller_id); 
-        //System.out.println(rating);
+        print_load_line(seller_dat, seller_id, rating);
+    }
+
+    static void print_load_line(FileWriter load_file, String... data) {
+
+        String data_entry = "";
+        
+        for (int i = 0; i < (data.length-1); i++) {
+            data_entry += data[i] + columnSeparator;
+        }
+        
+        data_entry += data[data.length-1] + "\n";
+
+        try {
+            load_file.write(data_entry);
+        }
+        catch (IOException error) {
+            System.err.println("ERROR: Cannot print data to load file");
+        }
     }
     
     public static void main (String[] args) {
@@ -303,10 +333,27 @@ class MyParser {
             System.exit(2);
         }
         
-        /* Process all files listed on command line. */
-        for (int i = 0; i < args.length; i++) {
-            File currentFile = new File(args[i]);
-            processFile(currentFile);
+        try {
+            item_dat     = new FileWriter("items.dat", true);
+            category_dat = new FileWriter("categories.dat", true);
+            bidder_dat   = new FileWriter("bidders.dat", true);
+            seller_dat   = new FileWriter("sellers.dat", true);
+            bid_dat      = new FileWriter("bids.dat", true);
+
+            /* Process all files listed on command line. */
+            for (int i = 0; i < args.length; i++) {
+                File currentFile = new File(args[i]);
+                processFile(currentFile);
+            }
+
+            item_dat.close();
+            category_dat.close();
+            bidder_dat.close();
+            seller_dat.close();
+            bid_dat.close();
+        }
+        catch (IOException error) {
+            System.out.println("ERROR: Cannot open load files for writing");
         }
     }
 }
