@@ -182,11 +182,102 @@ class MyParser {
         
         /* Fill in code here (you will probably need to write auxiliary
             methods). */
-        
+        Element[] items = getElementsByTagNameNR(doc.getDocumentElement(), "Item"); 
+        for(int i = 0; i < items.length; i++){
+            String id = items[i].getAttribute("ItemID"); 
+            String name = getElementTextByTagNameNR(items[i], "Name");
+            String description = getElementTextByTagNameNR(items[i], "Description");
+
+            if(description.length() > 4000)
+                description = description.substring(0, 4000); 
+            System.out.println("item number: " + i);
+            String currently = strip(getElementTextByTagNameNR(items[i], "Currently")); 
+            String buy_price = strip(getElementTextByTagNameNR(items[i], "Buy_Price"));
+            String first_bid = strip(getElementTextByTagNameNR(items[i], "First_Bid"));
+            String number_of_bids = getElementTextByTagNameNR(items[i], "Number_of_Bids");
+            
+            Element location = getElementByTagNameNR(items[i], "Location"); 
+            String latitude = location.getAttribute("Latitude"); 
+            String longitude = location.getAttribute("Longitude");
+            String location_text = getElementText(location); 
+            String country = getElementTextByTagNameNR(items[i], "Country");
+            String started = getElementTextByTagNameNR(items[i], "Started");
+            String ends = getElementTextByTagNameNR(items[i], "Ends");
+            String format_started = format_timestamp(started); 
+            String format_ends = format_timestamp(ends);  
+            //System.out.println(started);
+            //System.out.println(ends);
+            Element seller = getElementByTagNameNR(items[i], "Seller"); 
+            create_seller(seller); 
+            create_categories(items[i]);
+            create_bid(items[i]); 
+        }
         
         
         /**************************************************************/
         
+    }
+
+    static void create_bid(Element items) {
+        String item_id = items.getAttribute("ItemID"); 
+        Element bids_list = getElementByTagNameNR(items, "Bids"); 
+        Element[] bids = getElementsByTagNameNR(bids_list, "Bid"); 
+        for(int i = 0; i < bids.length; i++) {
+            Element bidder = getElementByTagNameNR(bids[i], "Bidder"); 
+
+            String bidder_id = bidder.getAttribute("UserID");
+            String bidder_Rating = bidder.getAttribute("Rating"); 
+            String bidder_Location = getElementTextByTagNameNR(bidder, "Location");
+            String bidder_Country = getElementTextByTagNameNR(bidder, "Country");
+            //String bidder_rating = bids[i].getAttribute("UserID"); 
+            String amount = strip(getElementTextByTagNameNR(bids[i], "Amount")); 
+            String time = getElementTextByTagNameNR(bids[i], "Time"); 
+            String format_time = format_timestamp(time); 
+
+            System.out.println(bidder_id);
+            System.out.println(amount);
+            System.out.println(format_time); 
+            System.out.println(bidder_Country);
+            System.out.println(bidder_Location); 
+            System.out.println(bidder_Rating);  
+        } 
+    }
+
+    static void create_categories(Element item) {
+        String id = item.getAttribute("ItemID"); 
+        Element[] categories = getElementsByTagNameNR(item, "Category");
+        for(int i = 0; i < categories.length; i++) {
+            String cat = getElementText(categories[i]); 
+            //System.out.println(cat); 
+            //addd id, cat to table 
+        }  
+    }
+    static String format_timestamp(String date_time)  {
+
+        String inputFormat  = "MMM-dd-yy HH:mm:ss";
+        String outputFormat = "yyyy-MM-dd HH:mm:ss";
+        SimpleDateFormat java_to_mysql = new SimpleDateFormat(inputFormat);
+        Date reformat;
+        String outputTimestamp = "";
+
+        try {
+            reformat = java_to_mysql.parse(date_time);
+            java_to_mysql.applyPattern(outputFormat);
+            outputTimestamp = java_to_mysql.format(reformat);
+        }
+        catch(ParseException error) {
+            System.err.println("ERROR: Cannot parse input \"" + date_time + "\"");
+        }
+
+        return outputTimestamp;
+    }
+
+    static void create_seller(Element seller){
+        String seller_id = seller.getAttribute("UserID"); 
+        String rating = seller.getAttribute("Rating");
+        // add to table/file 
+        //System.out.println(seller_id); 
+        //System.out.println(rating);
     }
     
     public static void main (String[] args) {
