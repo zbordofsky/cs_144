@@ -62,12 +62,22 @@ class MyParser {
 	"Notation",
     };
 
+    /* Load file for Item relation, whicb will contain info about items being sold  */
     private static FileWriter item_dat;
+
+    /* Load file for Category relation, which will give the categories for a given item  */
     private static FileWriter category_dat;
+
+    /* Load file for Bidder relation, which will contain bidding-related info of users  */
     private static FileWriter bidder_dat;
+
+    /* Load file for Seller relation, which will contain selling-related info of users  */
     private static FileWriter seller_dat;
+
+    /* Load file for Bid relation, which will contain info about all bids made on all items  */
     private static FileWriter bid_dat;
     
+
     static class MyErrorHandler implements ErrorHandler {
         
         public void warning(SAXParseException exception)
@@ -188,92 +198,114 @@ class MyParser {
         
         /* Fill in code here (you will probably need to write auxiliary
             methods). */
+
+        /* Get a list of all items under the root Element */
         Element[] items = getElementsByTagNameNR(doc.getDocumentElement(), "Item"); 
+
+        /* Iterate through each item, acquiring the data necessary to generate the load files.
+           In this function, we will populate the 'items.dat' load file. We call separate functions
+           to generate the 'categories.dat', 'bidders.dat', 'bids.dat', and 'sellers.dat' files.  */
         for(int i = 0; i < items.length; i++) {
 
-            String[] item_dat_line;
-
-            String id = items[i].getAttribute("ItemID"); 
+            /* Get unique identifier # for item, as well as its given name and description  */
+            String id = items[i].getAttribute("ItemID");
             String name = getElementTextByTagNameNR(items[i], "Name");
             String description = getElementTextByTagNameNR(items[i], "Description");
             if(description.length() > 4000)
-                description = description.substring(0, 4000); 
-            System.out.println("item number: " + i);
+                description = description.substring(0, 4000);  // max len allowed is 4000 chars
+
+            /* Get bidding / pricing related info for this item  */
             String currently = strip(getElementTextByTagNameNR(items[i], "Currently")); 
             String buy_price = strip(getElementTextByTagNameNR(items[i], "Buy_Price"));
             String first_bid = strip(getElementTextByTagNameNR(items[i], "First_Bid"));
             String number_of_bids = getElementTextByTagNameNR(items[i], "Number_of_Bids");
+
+            /* Get text description of item's location, as well as latitude/longitude (if specified) */
             Element location = getElementByTagNameNR(items[i], "Location"); 
             String latitude = location.getAttribute("Latitude"); 
             String longitude = location.getAttribute("Longitude");
             String location_text = getElementText(location); 
             String country = getElementTextByTagNameNR(items[i], "Country");
+
+            /* Get bidding time window for this item, reformatting to match with MySQL TIMESTAMP  */
             String started = getElementTextByTagNameNR(items[i], "Started");
             String ends = getElementTextByTagNameNR(items[i], "Ends");
             String format_started = format_timestamp(started); 
             String format_ends = format_timestamp(ends);
 
+            /* Determine who is selling this item (just id, more info goes in Seller table)  */
             Element seller = getElementByTagNameNR(items[i], "Seller"); 
             String seller_id = seller.getAttribute("UserID");
 
+            /* Add an entry to the 'items.dat' load file, i.e. a row in the Item table. The order
+               in which the values are passed in is the order they will appear in the table  */
             print_load_line(item_dat, id, name, description, seller_id, currently, buy_price,
                 first_bid, number_of_bids, location_text, latitude, longitude, country,
                     format_started, format_ends);
 
+            /* Acquire more data from current Element to populate 'sellers.dat'  */
             create_seller(seller); 
+
+            /* Acquire more data from current Element to populate 'categories.dat'  */
             create_categories(items[i]);
+
+            /* Acquire more data from current Element to populate 'bids.dat' and 'bidders.dat'  */
             create_bid(items[i]); 
         }
-        
-        
+             
         /**************************************************************/
         
     }
 
+    /* Function for populating 'bids.dat' and 'bidders.dat' load files  */
     static void create_bid(Element items) {
-        String item_id = items.getAttribute("ItemID"); 
-        Element bids_list = getElementByTagNameNR(items, "Bids"); 
-        Element[] bids = getElementsByTagNameNR(bids_list, "Bid"); 
-        for(int i = 0; i < bids.length; i++) {
-            Element bidder = getElementByTagNameNR(bids[i], "Bidder"); 
 
+        /* Item id tells us which item this bid is for  */
+        String item_id = items.getAttribute("ItemID");
+
+        /* Get list of bids for this item  */ 
+        Element bids_list = getElementByTagNameNR(items, "Bids"); 
+        Element[] bids = getElementsByTagNameNR(bids_list, "Bid");
+        for(int i = 0; i < bids.length; i++) {
+
+            /* Get bidder info (id, rating, location) for the 'bidders.dat' load file  */
+            Element bidder = getElementByTagNameNR(bids[i], "Bidder"); 
             String bidder_id = bidder.getAttribute("UserID");
             String bidder_Rating = bidder.getAttribute("Rating"); 
             String bidder_Location = getElementTextByTagNameNR(bidder, "Location");
             String bidder_Country = getElementTextByTagNameNR(bidder, "Country");
-            //String bidder_rating = bids[i].getAttribute("UserID"); 
+            print_load_line(bidder_dat, bidder_id, bidder_Rating, bidder_Location, bidder_Country);            
+
+            /* Get info about bid (bid amount, what time bid was made) for 'bids.dat' load file  */
             String amount = strip(getElementTextByTagNameNR(bids[i], "Amount")); 
             String time = getElementTextByTagNameNR(bids[i], "Time"); 
             String format_time = format_timestamp(time); 
-
-            System.out.println(bidder_id);
-            System.out.println(amount);
-            System.out.println(format_time); 
-            System.out.println(bidder_Country);
-            System.out.println(bidder_Location); 
-            System.out.println(bidder_Rating);
-
-            print_load_line(bidder_dat, bidder_id, bidder_Rating, bidder_Location, bidder_Country);
             print_load_line(bid_dat, item_id, bidder_id, format_time, amount);  
         } 
     }
 
-    static void create_categories(Element item) {
-        String id = item.getAttribute("ItemID"); 
+    /* Function for populating 'categories.dat' load file  */
+    static void create_categories(Element item) {   
+        /* Add a line to the load file for each category that an item falls under  */
+        String id = item.getAttribute("ItemID");
         Element[] categories = getElementsByTagNameNR(item, "Category");
         for(int i = 0; i < categories.length; i++) {
             String cat = getElementText(categories[i]);
             print_load_line(category_dat, id, cat); 
         }  
     }
+
+    /* Function for converting dates/times given in XML to TIMESTAMP format for MySQL  */
     static String format_timestamp(String date_time)  {
 
-        String inputFormat  = "MMM-dd-yy HH:mm:ss";
-        String outputFormat = "yyyy-MM-dd HH:mm:ss";
+        String inputFormat  = "MMM-dd-yy HH:mm:ss";     /* Format in the XML  */
+        String outputFormat = "yyyy-MM-dd HH:mm:ss";    /* Desired format for MySQL TIMESTAMP  */
+
         SimpleDateFormat java_to_mysql = new SimpleDateFormat(inputFormat);
         Date reformat;
         String outputTimestamp = "";
 
+        /* Perform conversion using the 'SimpleDateFormat'  */
         try {
             reformat = java_to_mysql.parse(date_time);
             java_to_mysql.applyPattern(outputFormat);
@@ -286,20 +318,25 @@ class MyParser {
         return outputTimestamp;
     }
 
+    /* Function for populating 'sellers.dat' load file  */
     static void create_seller(Element seller){
         String seller_id = seller.getAttribute("UserID"); 
         String rating = seller.getAttribute("Rating");
         print_load_line(seller_dat, seller_id, rating);
     }
 
+    /* Function for printing a line on a specified 'load_file'. 'String... data' represents a
+     * variable number of inputs (depends on which load file we're writing to) that contain the data */
     static void print_load_line(FileWriter load_file, String... data) {
 
         String data_entry = "";
-        
+
+        /* Separate each value by the specified column separator  */
         for (int i = 0; i < (data.length-1); i++) {
             data_entry += data[i] + columnSeparator;
         }
         
+        /* Dont' put a column separator after the last value for the entry, use newline to end entry  */
         data_entry += data[data.length-1] + "\n";
 
         try {
@@ -334,6 +371,7 @@ class MyParser {
         }
         
         try {
+            /* Instantiate FileWriter for each of the 5 load files we will be generating  */
             item_dat     = new FileWriter("items.dat", true);
             category_dat = new FileWriter("categories.dat", true);
             bidder_dat   = new FileWriter("bidders.dat", true);
@@ -346,6 +384,7 @@ class MyParser {
                 processFile(currentFile);
             }
 
+            /* Close the load files when we are finished processing all files  */
             item_dat.close();
             category_dat.close();
             bidder_dat.close();
@@ -353,7 +392,7 @@ class MyParser {
             bid_dat.close();
         }
         catch (IOException error) {
-            System.out.println("ERROR: Cannot open load files for writing");
+            System.err.println("ERROR: Cannot open load files for writing");
         }
     }
 }
