@@ -215,8 +215,13 @@ class MyParser {
                 description = description.substring(0, 4000);  // max len allowed is 4000 chars
 
             /* Get bidding / pricing related info for this item  */
-            String currently = strip(getElementTextByTagNameNR(items[i], "Currently")); 
+            String currently = strip(getElementTextByTagNameNR(items[i], "Currently"));
+
+            /* If buy_price is null, we need to use '\N' for load file to get NULL.
+               Otherwise, we will get 0.00  */ 
             String buy_price = strip(getElementTextByTagNameNR(items[i], "Buy_Price"));
+            if (buy_price == "")
+                buy_price = "\\N";
             String first_bid = strip(getElementTextByTagNameNR(items[i], "First_Bid"));
             String number_of_bids = getElementTextByTagNameNR(items[i], "Number_of_Bids");
 
