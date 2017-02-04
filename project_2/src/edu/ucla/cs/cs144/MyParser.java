@@ -228,7 +228,11 @@ class MyParser {
             /* Get text description of item's location, as well as latitude/longitude (if specified) */
             Element location = getElementByTagNameNR(items[i], "Location"); 
             String latitude = location.getAttribute("Latitude"); 
+            if (latitude == "")
+            	latitude = "\\N";
             String longitude = location.getAttribute("Longitude");
+            if (longitude == "")
+            	longitude = "\\N";
             String location_text = getElementText(location); 
             String country = getElementTextByTagNameNR(items[i], "Country");
 
@@ -278,7 +282,11 @@ class MyParser {
             String bidder_id = bidder.getAttribute("UserID");
             String bidder_Rating = bidder.getAttribute("Rating"); 
             String bidder_Location = getElementTextByTagNameNR(bidder, "Location");
+            if (bidder_Location == "")
+            	bidder_Location = "\\N";
             String bidder_Country = getElementTextByTagNameNR(bidder, "Country");
+            if (bidder_Country == "")
+            	bidder_Country = "\\N";
             print_load_line(bidder_dat, bidder_id, bidder_Rating, bidder_Location, bidder_Country);            
 
             /* Get info about bid (bid amount, what time bid was made) for 'bids.dat' load file  */
