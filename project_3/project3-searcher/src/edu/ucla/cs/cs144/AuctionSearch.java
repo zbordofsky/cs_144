@@ -55,7 +55,8 @@ public class AuctionSearch implements IAuctionSearch {
 			int numResultsToReturn) {
 		// TODO: Your code here!
 
-		SearchResult[] results = {}; 
+		ArrayList<SearchResult> basicResults = new ArrayList<SearchResult>();
+
 		try {
 			int minResults = numResultsToReturn + numResultsToSkip; 
 			IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index")))); 
@@ -63,34 +64,34 @@ public class AuctionSearch implements IAuctionSearch {
 			Query queryObj = parser.parse(query); 
 			TopDocs docs = searcher.search(queryObj, minResults); 
 			ScoreDoc[] hits = docs.scoreDocs; 
-			results = new SearchResult[numResultsToReturn]; 
 			
 			for(int i = numResultsToSkip; i < minResults; i++) {
 				if(i >= hits.length) {
 					break; 
 				}
 				Document resultDoc = searcher.doc(hits[i].doc); 
-				results[i] = new SearchResult(resultDoc.get("ItemId"), resultDoc.get("Name")); 
+				basicResults.add(new SearchResult(resultDoc.get("ItemId"), resultDoc.get("Name")));
+				//results[i] = new SearchResult(resultDoc.get("ItemId"), resultDoc.get("Name")); 
 			}
 		} catch(IOException | ParseException ex) {
 			System.err.println(ex); 
 		}
 		
-		return results; 
+		SearchResult[] endResults = basicResults.toArray(new SearchResult[basicResults.size()]);
+		return endResults; 
 	}
 
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
 			int numResultsToSkip, int numResultsToReturn) {
 		// TODO: Your code here!
+
+		ArrayList<SearchResult> spatialResults = new ArrayList<SearchResult>();
 		try {
 			IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index")))); 
 			QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
 			Query queryObj = parser.parse(query); 
 			TopDocs docs = searcher.search(queryObj, Integer.MAX_VALUE); //keyword search results 
 			ScoreDoc[] hits = docs.scoreDocs; 
-			
-			SearchResult[] spatialResult = new SearchResult[numResultsToReturn]; 
-
 		
 			Connection conn = DbManager.getConnection(true);
         	Statement stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -105,14 +106,14 @@ public class AuctionSearch implements IAuctionSearch {
         	int skips = 0; 
         	int numAdded = 0; 
 
-			for(int i = 0; numAdded < numResultsToReturn; i++) {
+			for(int i = 0; (numAdded < numResultsToReturn) && (i < hits.length); i++) {
 				Document doc = searcher.doc(hits[i].doc); 
 				if(locationIDs.contains(doc.get("ItemId"))) {
 					if(skips < numResultsToSkip) {
 						skips++; 
 					}
 					else {
-						spatialResult[numAdded] = new SearchResult(doc.get("ItemId"), doc.get("Name")); 
+						spatialResults.add(new SearchResult(doc.get("ItemId"), doc.get("Name"))); 
 						numAdded++; 
 					}
 				}
@@ -122,7 +123,8 @@ public class AuctionSearch implements IAuctionSearch {
 			System.err.println(ex); 
 		}
 		
-		return new SearchResult[0];
+		SearchResult[] endResults = spatialResults.toArray(new SearchResult[spatialResults.size()]);
+		return endResults; 
 	}
 
 	public String getXMLDataForItemId(String itemId) {
