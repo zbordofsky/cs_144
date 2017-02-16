@@ -59,7 +59,7 @@ public class Indexer {
             String categories = ""; 
             
             while(result_categories.next()){
-                categories += result_categories.getString("category") + " ! "; 
+                categories += result_categories.getString("category") + " "; 
             }
 
             String union_terms = name + " " + description + " " + categories; 
