@@ -87,8 +87,9 @@ public class AuctionSearch implements IAuctionSearch {
 			QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
 			Query queryObj = parser.parse(query); 
 			TopDocs docs = searcher.search(queryObj, Integer.MAX_VALUE); //keyword search results 
-		
-			SearchResult[] spatialResult; 
+			ScoreDoc[] hits = docs.scoreDocs; 
+			
+			SearchResult[] spatialResult = new SearchResult[numResultsToReturn]; 
 
 		
 			Connection conn = DbManager.getConnection(true);
@@ -100,11 +101,22 @@ public class AuctionSearch implements IAuctionSearch {
         	while(locationResult.next()) {
         		locationIDs.add(locationResult.getString("itemID")); 
         	}
-        
-			/*for(SearchResult result : basicResult) {
-				System.out.println(result.getItemId() + ": " + result.getName());
-				result_item = stmt.executeQuery("SELECT ");
-			}*/
+        	
+        	int skips = 0; 
+        	int numAdded = 0; 
+
+			for(int i = 0; numAdded < numResultsToReturn; i++) {
+				Document doc = searcher.doc(hits[i].doc); 
+				if(locationIDs.contains(doc.get("ItemId"))) {
+					if(skips < numResultsToSkip) {
+						skips++; 
+					}
+					else {
+						spatialResult[numAdded] = new SearchResult(doc.get("ItemId"), doc.get("Name")); 
+						numAdded++; 
+					}
+				}
+			}
 		}
 		catch(IOException | ParseException | SQLException ex) {
 			System.err.println(ex); 
