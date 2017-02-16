@@ -93,7 +93,7 @@ public class AuctionSearch implements IAuctionSearch {
 		
 			Connection conn = DbManager.getConnection(true);
         	Statement stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-        	String locationQuery = String.format("SELECT itemID FROM ItemLocation WHERE MBRContains(GeomFromText('Polygon((%f %f, %f %f, %f %f, %f %f, %f %f))'), coord)", 
+        	String locationQuery = String.format("SELECT itemID FROM ItemLocation WHERE MBRContains(GeomFromText('Polygon((%f %f, %f %f, %f %f, %f %f, %f %f))'), latLong)", 
         		region.getLx(), region.getLy(), region.getLx(), region.getRy(), region.getRx(), region.getRy(), region.getRx(), region.getLy(), region.getLx(), region.getLy()); 
         	ResultSet locationResult = stmt.executeQuery(locationQuery);
         	HashSet <String> locationIDs = new HashSet <String>(); 
