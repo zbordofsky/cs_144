@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet; 
 import java.text.SimpleDateFormat;
 
 import java.sql.Connection;
@@ -61,14 +62,13 @@ public class AuctionSearch implements IAuctionSearch {
 			QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
 			Query queryObj = parser.parse(query); 
 			TopDocs docs = searcher.search(queryObj, minResults); 
-			//System.out.println("docs: " + docs.totalHits); 
 			ScoreDoc[] hits = docs.scoreDocs; 
 			results = new SearchResult[numResultsToReturn]; 
+			
 			for(int i = numResultsToSkip; i < minResults; i++) {
 				if(i >= hits.length) {
 					break; 
 				}
-				//System.out.println(hits[i].score); 
 				Document resultDoc = searcher.doc(hits[i].doc); 
 				results[i] = new SearchResult(resultDoc.get("ItemId"), resultDoc.get("Name")); 
 			}
@@ -82,6 +82,34 @@ public class AuctionSearch implements IAuctionSearch {
 	public SearchResult[] spatialSearch(String query, SearchRegion region,
 			int numResultsToSkip, int numResultsToReturn) {
 		// TODO: Your code here!
+		try {
+			IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index")))); 
+			QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
+			Query queryObj = parser.parse(query); 
+			TopDocs docs = searcher.search(queryObj, Integer.MAX_VALUE); //keyword search results 
+		
+			SearchResult[] spatialResult; 
+
+		
+			Connection conn = DbManager.getConnection(true);
+        	Statement stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        	String locationQuery = String.format("SELECT itemID FROM ItemLocation WHERE MBRContains(GeomFromText('Polygon((%f %f, %f %f, %f %f, %f %f, %f %f))'), coord)", 
+        		region.getLx(), region.getLy(), region.getLx(), region.getRy(), region.getRx(), region.getRy(), region.getRx(), region.getLy(), region.getLx(), region.getLy()); 
+        	ResultSet locationResult = stmt.executeQuery(locationQuery);
+        	HashSet <String> locationIDs = new HashSet <String>(); 
+        	while(locationResult.next()) {
+        		locationIDs.add(locationResult.getString("itemID")); 
+        	}
+        
+			/*for(SearchResult result : basicResult) {
+				System.out.println(result.getItemId() + ": " + result.getName());
+				result_item = stmt.executeQuery("SELECT ");
+			}*/
+		}
+		catch(IOException | ParseException | SQLException ex) {
+			System.err.println(ex); 
+		}
+		
 		return new SearchResult[0];
 	}
 
@@ -93,5 +121,20 @@ public class AuctionSearch implements IAuctionSearch {
 	public String echo(String message) {
 		return message;
 	}
+
+	/*private ScoreDoc[] keywordSearch(String query) {
+		try{
+			IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index")))); 
+			QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
+			Query queryObj = parser.parse(query); 
+			TopDocs docs = searcher.search(queryObj, Integer.MAX_VALUE); 
+			ScoreDoc[] hits = docs.scoreDocs; 
+			return hits; 
+		}
+		catch(IOException | ParseException ex) {
+			System.err.println(ex); 
+		}
+		return new ScoreDoc[0]; 
+	}*/
 
 }
