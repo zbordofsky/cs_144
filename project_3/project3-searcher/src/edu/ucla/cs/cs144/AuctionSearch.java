@@ -53,24 +53,30 @@ public class AuctionSearch implements IAuctionSearch {
 	public SearchResult[] basicSearch(String query, int numResultsToSkip, 
 			int numResultsToReturn) {
 		// TODO: Your code here!
-		int minResults = numResultsToReturn + numResultsToSkip; 
-		IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index")))); 
-		QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
-		Query queryObj = parser.parse(query); 
-		TopDocs docs = searcher.search(queryObj, minResults); 
-		ScoreDoc[] hits = docs.scoreDocs; 
-		SearchResult[] results = new SearchResult[numResultsToReturn]; 
 
-		for(int i = numResultsToSkip; i < numResultsToReturn; i++) {
-
-			if(i >= hits.length)
-				break; 
-			Document resultDoc = searcher.getDocument(hits[i].doc); 
-			results[i] = new SearchResult(resultDoc.get("itemID"), resultDoc.get("name")); 
+		SearchResult[] results = {}; 
+		try {
+			int minResults = numResultsToReturn + numResultsToSkip; 
+			IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(FSDirectory.open(new File("/var/lib/lucene/index")))); 
+			QueryParser parser = new QueryParser("content", new StandardAnalyzer()); 
+			Query queryObj = parser.parse(query); 
+			TopDocs docs = searcher.search(queryObj, minResults); 
+			//System.out.println("docs: " + docs.totalHits); 
+			ScoreDoc[] hits = docs.scoreDocs; 
+			results = new SearchResult[numResultsToReturn]; 
+			for(int i = numResultsToSkip; i < minResults; i++) {
+				if(i >= hits.length) {
+					break; 
+				}
+				//System.out.println(hits[i].score); 
+				Document resultDoc = searcher.doc(hits[i].doc); 
+				results[i] = new SearchResult(resultDoc.get("ItemId"), resultDoc.get("Name")); 
+			}
+		} catch(IOException | ParseException ex) {
+			System.err.println(ex); 
 		}
+		
 		return results; 
-
-		return new SearchResult[0];
 	}
 
 	public SearchResult[] spatialSearch(String query, SearchRegion region,

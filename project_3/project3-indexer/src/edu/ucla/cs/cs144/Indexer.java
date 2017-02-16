@@ -68,7 +68,7 @@ public class Indexer {
             index_doc.add(new StringField("Name", name, Field.Store.YES));
             index_doc.add(new StringField("Description", description, Field.Store.YES));
             index_doc.add(new StringField("Category", categories, Field.Store.YES));
-            index_doc.add(new TextField("Full Search", union_terms, Field.Store.NO));
+            index_doc.add(new TextField("content", union_terms, Field.Store.NO));
 
             indexBuilder.addDocument(index_doc); 
             result_categories.close(); 
