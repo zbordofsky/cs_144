@@ -64,4 +64,6 @@ public interface IAuctionSearch {
 	 */
 	//private ScoreDoc[] keywordSearch(String query); 
 
+	//private String escapeCharacters(String field);
+
 }
