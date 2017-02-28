@@ -3,12 +3,13 @@ Zach Bordofsky, 304443257
 
 CS 144 - Project 3
 Search and Retrieval
+Part A: Keyword Search
 
 For our implementation in part A.2 of this project, we decided to create a single Lucene
 index on the `itemID`, `name`, and `description` attributes of the `Item` table, and the `category` attribute of the `Category` table. 
 
 The `itemID` and `name` attributes are to be returned in the search results; hence, we
-also specify that these fields are to be stores. The `description` and `category` fields
+also specify that these fields are to be stored. The `description` and `category` fields
 may be useful to be returned in search results at some point, and thus we have included
 (and stored) these fields in the index as well. Finally, we have the union of `name`,
 `description`, and `category` in the index which we will actually perform the keyword

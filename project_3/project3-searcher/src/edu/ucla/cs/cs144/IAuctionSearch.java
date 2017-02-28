@@ -55,15 +55,4 @@ public interface IAuctionSearch {
 	 */
 	public String echo(String message);
 
-	/**
-	 * Performs a basic keyword search for the given query string and returns all hits.
-	 * 
-	 * @param query The keyword phrase for the search.
-	 * @return An array of all ScoreDoc objects 
-	 * representing the results of the query.  
-	 */
-	//private ScoreDoc[] keywordSearch(String query); 
-
-	//private String escapeCharacters(String field);
-
 }
