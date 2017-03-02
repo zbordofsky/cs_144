@@ -22,14 +22,15 @@ public class SearchServlet extends HttpServlet implements Servlet {
             return;
         }
 
-        /*if (query != null && !query.isEmpty()) {
-        	;
-
-        	//SearchResult[] searchResults = AuctionSearch.basicSearch(query, 0, 10);
-        	//request.setAttribute("searchResults", searchResults);
-        }*/
-
-        //request.setAttribute("query", query);
-        //request.getRequestDispatcher("/search.jsp").forward(request, response);
+        // If query is not empty, obtain search parameters
+        Integer numResultsToSkip = Integer.parseInt(request.getParameter("numToSkip"));
+        Integer numResultsToReturn = Integer.parseInt(request.getParameter("numToReturn"));
+        SearchResult[] searchResults = AuctionSearch.basicSearch(query, numResultsToSkip, numResultsToReturn);
+       
+        request.setAttribute("searchResults", searchResults);
+        request.setAttribute("query", query);
+        request.setAttribute("numToSkip", numResultsToSkip);
+        request.setAttribute("numToReturn", numResultsToReturn);
+        request.getRequestDispatcher("/searchResults.jsp").forward(request, response);
     }
 }
