@@ -22,7 +22,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 
 
-class Item {
+public class Item {
 
     private String ItemID;
     private String Name;

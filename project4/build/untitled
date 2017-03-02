@@ -1,0 +1,32 @@
+
+
+
+
+<% for (Bid bid : item.getBids()) { %>
+      <%= bid.getBidder() %><br>
+      <%= bid.getRating() %><br>
+      <%= bid.getLocation() %><br>
+      <%= bid.getCountry() %><br>
+      <%= bid.getTime() %><br>
+      <%= bid.getAmount() %><br>
+    <% } %>
+
+
+
+    
+
+
+    <% List<Bid> bids = item.getBids(); %>
+
+
+    <% List<String> categories = item.getCategories(); %>
+
+
+    
+
+    
+    
+   
+    
+    
+           

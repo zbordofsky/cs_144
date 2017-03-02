@@ -22,7 +22,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 
 
-class Bid {
+public class Bid {
 
     private String Bidder;
     private String Rating;

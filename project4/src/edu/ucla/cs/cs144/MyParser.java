@@ -41,7 +41,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ErrorHandler;
 
 
-class MyParser {
+public class MyParser {
     
     static final String columnSeparator = "|*|";
     static DocumentBuilder builder;

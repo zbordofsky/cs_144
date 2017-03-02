@@ -37,7 +37,7 @@ public class ItemServlet extends HttpServlet implements Servlet {
 	        request.setAttribute("SellerRating", parsedXML.getSellerRating());
 	        request.setAttribute("Description", parsedXML.getDescription());
 	        request.setAttribute("item", parsedXML);
-	        PrintWriter out = response.getWriter();
+	        /*PrintWriter out = response.getWriter();
 	        out.println("<html>");
 	        out.println("<body><h1>Results</h1>");
 	        out.println(parsedXML.getItemId());
@@ -67,9 +67,9 @@ public class ItemServlet extends HttpServlet implements Servlet {
 	        out.println(parsedXML.getEndDate());
 	        out.println(parsedXML.getSellerID());
 	        out.println(parsedXML.getSellerRating());
-	        out.println(parsedXML.getDescription());
+	        out.println(parsedXML.getDescription());*/
 
-	        //request.getRequestDispatcher("/itemInfo.jsp").forward(request, response);
+	        request.getRequestDispatcher("/itemInfo.jsp").forward(request, response);
     	}
     	catch (Exception e) {
     		e.printStackTrace(); // TODO: change
