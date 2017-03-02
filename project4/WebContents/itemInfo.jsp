@@ -1,7 +1,8 @@
 
-<%@ page import="edu.ucla.cs.cs144.Item" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.*" %>
+<%@ page import="edu.ucla.cs.cs144.Item" %>
+<%@ page import="edu.ucla.cs.cs144.Bid" %>
 
 <html>
 
@@ -19,11 +20,8 @@
     </form>
 
     Displaying item information...<br>
-    <%= request.getAttribute("ItemId") %>
     <br>
-    <%= request.getAttribute("Name") %>
     <br>
-    <% edu.ucla.cs.cs144.Item pleaseWork = new Item((String)request.getAttribute("item")); %>
     <br>
 
 

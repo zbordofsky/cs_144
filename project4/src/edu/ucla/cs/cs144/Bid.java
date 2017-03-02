@@ -47,4 +47,28 @@ class Bid {
 
     }
 
+    public String getBidder() {
+        return this.Bidder;
+    }
+
+    public String getRating() {
+        return this.Rating;
+    }
+
+    public String getLocation() {
+        return this.Location;
+    }
+
+    public String getCountry() {
+        return this.Country;
+    }
+
+    public String getTime() {
+        return this.Time;
+    }
+
+    public String getAmount() {
+        return this.Amount;
+    }
+
 }

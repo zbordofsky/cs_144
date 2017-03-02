@@ -1,6 +1,7 @@
 package edu.ucla.cs.cs144;
 
-import java.io.*;   // TODO remove
+import java.io.*;   // TODO remove?
+import java.util.*; // TODO remove?
 import java.io.IOException;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -40,6 +41,33 @@ public class ItemServlet extends HttpServlet implements Servlet {
 	        out.println("<html>");
 	        out.println("<body><h1>Results</h1>");
 	        out.println(parsedXML.getItemId());
+	        out.println(parsedXML.getName());
+	        out.println(parsedXML.getCategories());
+	        out.println(parsedXML.getCurrentBid());
+	        out.println(parsedXML.getBuyPrice());
+	        out.println(parsedXML.getFirstBid());
+	        out.println(parsedXML.getNumBids());
+
+	        List<Bid> Bids = new ArrayList<Bid>();
+	        Bids = parsedXML.getBids();
+	        for (Bid currBid : Bids) {
+	        	out.println(currBid.getBidder());
+	        	out.println(currBid.getRating());
+	        	out.println(currBid.getLocation());
+	        	out.println(currBid.getCountry());
+	        	out.println(currBid.getTime());
+	        	out.println(currBid.getAmount());
+	        }
+
+	        out.println(parsedXML.getLatitude());
+	        out.println(parsedXML.getLongitude());
+	        out.println(parsedXML.getLocation());
+	        out.println(parsedXML.getCountry());
+	        out.println(parsedXML.getStartDate());
+	        out.println(parsedXML.getEndDate());
+	        out.println(parsedXML.getSellerID());
+	        out.println(parsedXML.getSellerRating());
+	        out.println(parsedXML.getDescription());
 
 	        //request.getRequestDispatcher("/itemInfo.jsp").forward(request, response);
     	}
