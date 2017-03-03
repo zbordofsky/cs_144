@@ -30,8 +30,8 @@ public class ProxyServlet extends HttpServlet implements Servlet {
         HttpURLConnection huc = (HttpURLConnection) u.openConnection();
         huc.connect();
 
-        huc.setRequestMethod("GET");
-        huc.setRequestProperty("Content-type", "text/xml");
+        //huc.setRequestMethod("GET");
+        //huc.setRequestProperty("Content-type", "text/xml");
         response.setContentType("text/xml");
 
         // read from connection

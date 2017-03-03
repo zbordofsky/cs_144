@@ -2,16 +2,35 @@
 
 <head>
     <title>Search Auctions</title>
+    <script type="text/javascript">
+    	var xmlHttp = new XMLHttpRequest(); 
+
+    	function sendAjaxRequest(input) {
+    		var request = "suggest?query=" + encodeURI(input); 
+    		xmlHttp.open("GET", request); 
+    		xmlHttp.onreadystatechange = showSuggestion; 
+    		xmlHttp.send(null); 
+    	}
+    	function showSuggestion() {
+    		if(xmlHttp.readyState == 4) {
+    			response = xmlHttp.responseText; 
+    			response = response.replace(/</g, "&lt;"); 
+    			response = response.replace(/>/g, "&gt;");
+    			document.getElementById("suggestion").innerHTML = response;  
+    		}
+    	}
+    </script>
 </head>
 
 <body>
     <h3>Search Auctions</h3>
     <form action="/eBay/search" method="GET">
-    	<input type="text" name="query" placeholder="What are you looking for?">
+    	<input type="text" name="query" placeholder="What are you looking for?" onKeyUp="sendAjaxRequest(this.value);">
     	<input type="hidden" name="numToSkip" value="0">
     	<input type="hidden" name="numToReturn" value="10"> 
     	<input type="submit" value="Search">
     </form>
+    Suggestion: <pre id="suggestion"></pre>
 </body>
 
 </html>
