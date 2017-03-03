@@ -1,3 +1,4 @@
+<!DOCTYPE HTML>
 <html>
 
 <head>
@@ -71,13 +72,13 @@
         AutoSuggestControl.prototype.requestSuggestions = function (bTypeAhead) {
 
             var xmlHttp = new XMLHttpRequest();
-            var request = "suggest?query=" + encodeURI(this.textbox.innerHTML);
-
+            var request = "suggest?query=" + encodeURI(this.textbox.value);
+            var that = this; 
             xmlHttp.open("GET", request);
             xmlHttp.onreadystatechange = function() {
                 if (xmlHttp.readyState == 4) {
-                    var response = xmlHttp.responseXML;
-                    var xmlDom = new DOMParser().parseFromString(response, 'text/xml');
+                    var response = xmlHttp.responseText;
+                    var xmlDom = new DOMParser().parseFromString(response, "text/xml");
                     var suggestions = xmlDom.getElementsByTagName("suggestion");
                     var currSuggestion;
                     var Suggestions = [];
@@ -86,7 +87,7 @@
                         Suggestions.push(currSuggestion);
                     }
 
-                    this.autosuggest(this, bTypeAhead);
+                    that.autosuggest(Suggestions, bTypeAhead);
                 }
             }
 
@@ -143,15 +144,14 @@
 		    }
 		};
 
-		AutoSuggestControl.prototype.createDropDown = function () {
-
+		AutoSuggestControl.prototype.createDropDown = function () { 
             var oThis = this;
 
-            this.layer = document.createElement("div");
+            this.layer = document.createElement('div');
             this.layer.className = "suggestions";
             this.layer.style.visibility = "hidden";
             this.layer.style.width = this.textbox.offsetWidth;
-
+            console.log(this.layer);
             this.layer.onmousedown = this.layer.onmouseup = 
             this.layer.onmouseover = function (oEvent) {
                 oEvent = oEvent || window.event;
@@ -167,8 +167,8 @@
                 }
 
             document.body.appendChild(this.layer);
-
-            };
+            }
+        };
 
         AutoSuggestControl.prototype.getLeft = function () {
 
@@ -204,6 +204,7 @@
                 oDiv = document.createElement("div");
                 oDiv.appendChild(document.createTextNode(aSuggestions[i]));
                 this.layer.appendChild(oDiv);
+                console.log(aSuggestions[i]);
             }
 
             this.layer.style.left = this.getLeft() + "px";
@@ -219,7 +220,6 @@
         };
         AutoSuggestControl.prototype.autosuggest = function (aSuggestions,
         bTypeAhead) {
-
             if (aSuggestions.length > 0) {
                 if (bTypeAhead) {
                     this.typeAhead(aSuggestions[0]);
