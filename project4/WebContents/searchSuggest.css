@@ -3,6 +3,8 @@ div.suggestions {
     box-sizing: border-box;
     border: 1px solid black;
     position: absolute;   
+    z-index: 1; 
+    background-color: white; 
 }
 
 div.suggestions div {

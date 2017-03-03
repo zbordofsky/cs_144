@@ -24,8 +24,16 @@
     <script type="text/javascript" 
         src="http://maps.google.com/maps/api/js?sensor=false"> 
     </script> 
+
+    <script type="text/javascript" src="SuggestionProvider.js"></script>
+    <script type="text/javascript" src="SearchSuggest.js"></script>
+    <link rel="stylesheet" type="text/css" href="searchSuggest.css" />
+
+    
+
     <script type="text/javascript"> 
       function initialize() { 
+        var oTextbox = new AutoSuggestControl(document.getElementById("query"), new SuggestionProvider());
         var longitude = '<%=(String)request.getAttribute("Longitude")%>'; 
         var latitude = '<%=(String)request.getAttribute("Latitude")%>'; 
         if(longitude != "n/a" && latitude != "N/A"){
@@ -55,7 +63,7 @@
 <body onload='initialize()'>
     <h3>Item Information</h3>
     <form action="/eBay/search" method="GET">
-    	<input type="text" name="query" placeholder="What are you looking for?">
+    	<input type="text" name="query" placeholder="What are you looking for?" id="query">
     	<input type="hidden" name="numToSkip" value="0">
     	<input type="hidden" name="numToReturn" value="10"> 
     	<input type="submit" value="Search">

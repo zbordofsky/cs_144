@@ -47,6 +47,7 @@ AutoSuggestControl.prototype.autosuggest = function (aSuggestions /*:Array*/,
                                                      bTypeAhead /*:boolean*/) {
     
     //make sure there's at least one suggestion
+    console.log(aSuggestions.length); 
     if (aSuggestions.length > 0) {
         if (bTypeAhead) {
            this.typeAhead(aSuggestions[0]);

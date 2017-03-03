@@ -31,15 +31,14 @@ SuggestionProvider.prototype.requestSuggestions = function (oAutoSuggestControl 
     
     var that = oAutoSuggestControl;
 	var aSuggestions = [];
-	var sTextboxValue = oAutoSuggestControl.textbox.value;
-
+	var sTextboxValue = oAutoSuggestControl.textbox.value; 
 	// search for suggestions if input text box is non-empty
 	if (sTextboxValue.length > 0) {
 		var xmlHttp = new XMLHttpRequest();
 		var request = "suggest?query=" + encodeURI(sTextboxValue);
 		xmlHttp.open("GET", request);
-		xmlHttp.onreadystatechance = function() {
-			if (xmlHttp.readyState == 4) {
+		xmlHttp.onreadystatechange = function() {
+			if (xmlHttp.readyState == 4) { 
 				var response = xmlHttp.responseText;
 				var xmlDom = new DOMParser().parseFromString(response, "text/xml");
 				var suggestions = xmlDom.getElementsByTagName("suggestion");
@@ -54,5 +53,6 @@ SuggestionProvider.prototype.requestSuggestions = function (oAutoSuggestControl 
 		};
 
 		xmlHttp.send(null);
-	};
+	}
+
 };
