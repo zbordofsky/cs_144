@@ -3,30 +3,120 @@
 <head>
     <title>Search Auctions</title>
     <script type="text/javascript">
-    	var xmlHttp = new XMLHttpRequest(); 
 
-    	function sendAjaxRequest(input) {
-    		var request = "suggest?query=" + encodeURI(input); 
-    		xmlHttp.open("GET", request); 
-    		xmlHttp.onreadystatechange = showSuggestion; 
-    		xmlHttp.send(null); 
-    	}
-    	function showSuggestion() {
-    		if(xmlHttp.readyState == 4) {
-    			response = xmlHttp.responseText; 
-    			response = response.replace(/</g, "&lt;"); 
-    			response = response.replace(/>/g, "&gt;");
-    			document.getElementById("suggestion").innerHTML = response;  
-    		}
-    	}
+        window.onload = function () {
+            var oTextbox = new AutoSuggestControl(document.getElementById("suggestion"));
+        };
 
-    	function AutoSuggestControl(oTextbox, oProvider) {
+    	function AutoSuggestControl(oTextbox) {
     		this.cur = -1;
             this.layer = null; 
-    		this.provider = oProvider;
     		this.textbox = oTextbox;
     		this.init(); 
 		}
+
+        AutoSuggestControl.prototype.init = function () {
+
+            var oThis = this;
+
+            this.textbox.onkeyup = function (oEvent) {
+                if (!oEvent) {
+                    oEvent = window.event;
+                } 
+                oThis.handleKeyUp(oEvent);
+            };
+
+            this.textbox.onkeydown = function (oEvent) {
+                if (!oEvent) {
+                    oEvent = window.event;
+                } 
+                oThis.handleKeyDown(oEvent);
+            };
+
+            this.textbox.onblur = function () {
+                oThis.hideSuggestions();
+            };
+
+            this.createDropDown();
+        };
+
+        AutoSuggestControl.prototype.handleKeyUp = function (oEvent) {
+
+            var iKeyCode = oEvent.keyCode;
+
+            if (iKeyCode == 8 || iKeyCode == 46) {
+                this.requestSuggestions(false);
+
+            } else if (iKeyCode < 32 || (iKeyCode >= 33 && iKeyCode <= 46) || (iKeyCode >= 112 && iKeyCode <= 123)) {
+                //ignore
+            } else {
+                this.requestSuggestions(true);
+            }
+        };
+
+        AutoSuggestControl.prototype.handleKeyDown = function (oEvent) {
+            switch(oEvent.keyCode) {
+                case 38: //up arrow
+                    this.previousSuggestion();
+                    break;
+                case 40: //down arrow 
+                    this.nextSuggestion();
+                    break;
+                case 13: //enter
+                    this.hideSuggestions();
+                    break;
+            }
+        };
+
+        AutoSuggestControl.prototype.requestSuggestions = function (bTypeAhead) {
+
+            var xmlHttp = new XMLHttpRequest();
+            var request = "suggest?query=" + encodeURI(this.textbox.innerHTML);
+
+            xmlHttp.open("GET", request);
+            xmlHttp.onreadystatechange = function() {
+                if (xmlHttp.readyState == 4) {
+                    var response = xmlHttp.responseXML;
+                    var xmlDom = new DOMParser().parseFromString(response, 'text/xml');
+                    var suggestions = xmlDom.getElementsByTagName("suggestion");
+                    var currSuggestion;
+                    var Suggestions = [];
+                    for (var i = 0; i < suggestions.length; i++) {
+                        currSuggestion = suggestions[i].getAttribute("data");
+                        Suggestions.push(currSuggestion);
+                    }
+
+                    this.autosuggest(this, bTypeAhead);
+                }
+            }
+
+            xmlHttp.send(null);
+        };
+
+
+        AutoSuggestControl.prototype.previousSuggestion = function () {
+            var cSuggestionNodes = this.layer.childNodes;
+
+            if (cSuggestionNodes.length > 0 && this.cur > 0) {
+                var oNode = cSuggestionNodes[--this.cur];
+                this.highlightSuggestion(oNode);
+                this.textbox.value = oNode.firstChild.nodeValue; 
+            }
+        };
+
+        AutoSuggestControl.prototype.nextSuggestion = function () {
+            var cSuggestionNodes = this.layer.childNodes;
+
+            if (cSuggestionNodes.length > 0 && this.cur < cSuggestionNodes.length-1) {
+                var oNode = cSuggestionNodes[++this.cur];
+                this.highlightSuggestion(oNode);
+                this.textbox.value = oNode.firstChild.nodeValue; 
+            }
+        };
+
+        AutoSuggestControl.prototype.hideSuggestions = function () {
+            this.layer.style.visibility = "hidden";
+        };
 
 		AutoSuggestControl.prototype.selectRange = function (iStart, iLength) {
     		if (this.textbox.createTextRange) {
@@ -39,10 +129,6 @@
     		}
 
     		this.textbox.focus(); 
-		};
-
-		AutoSuggestControl.prototype.hideSuggestions = function () {
-		    this.layer.style.visibility = "hidden";
 		};
 
 		AutoSuggestControl.prototype.highlightSuggestion = function (oSuggestionNode) {
@@ -59,13 +145,12 @@
 
 		AutoSuggestControl.prototype.createDropDown = function () {
 
+            var oThis = this;
+
             this.layer = document.createElement("div");
             this.layer.className = "suggestions";
             this.layer.style.visibility = "hidden";
             this.layer.style.width = this.textbox.offsetWidth;
-            document.body.appendChild(this.layer);
-
-            var oThis = this;
 
             this.layer.onmousedown = this.layer.onmouseup = 
             this.layer.onmouseover = function (oEvent) {
@@ -80,7 +165,11 @@
                 } else {
                     oThis.textbox.focus();
                 }
+
+            document.body.appendChild(this.layer);
+
             };
+
         AutoSuggestControl.prototype.getLeft = function () {
 
             var oNode = this.textbox;
@@ -141,87 +230,9 @@
             }
         };
 
-        StateSuggestions.prototype.requestSuggestions = function (oAutoSuggestControl,
-        bTypeAhead) {
-            var aSuggestions = [];
-            var sTextboxValue = oAutoSuggestControl.textbox.value;
 
-            if (sTextboxValue.length > 0){
 
-                for (var i=0; i < this.states.length; i++) { 
-                    if (this.states[i].indexOf(sTextboxValue) == 0) {
-                        aSuggestions.push(this.states[i]);
-                    } 
-                }
-            }
 
-            oAutoSuggestControl.autosuggest(aSuggestions, bTypeAhead);
-        };  
-        AutoSuggestControl.prototype.handleKeyUp = function (oEvent) {
-
-            var iKeyCode = oEvent.keyCode;
-
-            if (iKeyCode == 8 || iKeyCode == 46) {
-                this.provider.requestSuggestions(this, false);
-
-            } else if (iKeyCode < 32 || (iKeyCode >= 33 && iKeyCode <= 46) || (iKeyCode >= 112 && iKeyCode <= 123)) {
-                //ignore
-            } else {
-                this.provider.requestSuggestions(this, true);
-            }
-        };
-        AutoSuggestControl.prototype.nextSuggestion = function () {
-            var cSuggestionNodes = this.layer.childNodes;
-
-            if (cSuggestionNodes.length > 0 && this.cur < cSuggestionNodes.length-1) {
-                var oNode = cSuggestionNodes[++this.cur];
-                this.highlightSuggestion(oNode);
-                this.textbox.value = oNode.firstChild.nodeValue; 
-            }
-        };
-        AutoSuggestControl.prototype.previousSuggestion = function () {
-            var cSuggestionNodes = this.layer.childNodes;
-
-            if (cSuggestionNodes.length > 0 && this.cur > 0) {
-                var oNode = cSuggestionNodes[--this.cur];
-                this.highlightSuggestion(oNode);
-                this.textbox.value = oNode.firstChild.nodeValue; 
-            }
-        };
-        AutoSuggestControl.prototype.handleKeyDown = function (oEvent) {
-            switch(oEvent.keyCode) {
-                case 38: //up arrow
-                    this.previousSuggestion();
-                    break;
-                case 40: //down arrow 
-                    this.nextSuggestion();
-                    break;
-                case 13: //enter
-                    this.hideSuggestions();
-                    break;
-            }
-        };
-        AutoSuggestControl.prototype.init = function () {
-
-            var oThis = this;
-
-            this.textbox.onkeyup = function (oEvent) {
-                if (!oEvent) {
-                    oEvent = window.event;
-                } 
-                oThis.handleKeyUp(oEvent);
-            };
-            this.textbox.onkeydown = function (oEvent) {
-                if (!oEvent) {
-                    oEvent = window.event;
-                } 
-                oThis.handleKeyDown(oEvent);
-            };
-            this.textbox.onblur = function () {
-                oThis.hideSuggestions();
-            };
-            this.createDropDown();
-        };
     </script>
     <style type="text/css">
     	div.suggestions {
@@ -238,19 +249,19 @@
 		    background-color: #3366cc;
 		    color: white;
 		}
-
     </style>
+
+
 </head>
 
 <body>
     <h3>Search Auctions</h3>
     <form action="/eBay/search" method="GET">
-    	<input type="text" name="query" placeholder="What are you looking for?" onKeyUp="sendAjaxRequest(this.value);">
+    	<input type="text" id="suggestion" name="query" placeholder="What are you looking for?">
     	<input type="hidden" name="numToSkip" value="0">
     	<input type="hidden" name="numToReturn" value="10"> 
     	<input type="submit" value="Search">
     </form>
-    Suggestion: <pre id="suggestion"></pre>
 </body>
 
 </html>
